@@ -5,6 +5,8 @@ import torch.nn as nn
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 
+from settings import *
+
 def train(net, dataloader, epoch, criterion, optimizer, device):
     #ネットワークを学習モードにする
     net.train()
@@ -16,12 +18,14 @@ def train(net, dataloader, epoch, criterion, optimizer, device):
     with tqdm(total=len(dataloader), unit='batch', desc='[train] {}epoch'.format(epoch))as pb:
         for data, label in dataloader:
             #データとクラスのラベルを学習するデバイスに載せる
-            data = data.to(device)
+            #data = data.to(device)
+            ch0, ch1, ch2, ch3, ch4, ch5, ch6, ch7 = data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]
+            ch0, ch1, ch2, ch3, ch4, ch5, ch6, ch7 = ch0.to(device), ch1.to(device), ch2.to(device), ch3.to(device), ch4.to(device), ch5.to(device), ch6.to(device), ch7.to(device)
             label = label.to(device)
 
             #順伝搬
             optimizer.zero_grad()
-            pred = net(data)
+            pred = net(ch0, ch1, ch2, ch3, ch4, ch5, ch6, ch7)
 
             #損失を求める
             loss = criterion(pred, label)
@@ -39,7 +43,7 @@ def train(net, dataloader, epoch, criterion, optimizer, device):
             optimizer.step()
 
             #1バッチ分のlossを加算
-            epoch_loss += float(loss.item()) * float(data.size(0))
+            epoch_loss += float(loss.item()) * float(batch_size)
 
             pb.update(1)
     
