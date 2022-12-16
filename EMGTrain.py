@@ -1,17 +1,17 @@
 # coding: utf-8
-import os
 import datetime
+import os
+
+import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 from torch import optim
 from torch.utils.data import DataLoader
-import matplotlib.pyplot as plt
 
-import training
-import model
 import dataset
+import model
+import training
 from settings import *
-
 
 #GPUが使用可能であれば使う
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -29,14 +29,19 @@ def main():
     train_EMG_dataset = dataset.EMGDatasetLSTM(dataset_folder = dataset_folder,
                                    class_name = LABEL_NAMES,
                                    is_train=True)
+    val_EMG_dataset = dataset.EMGDatasetLSTM(dataset_folder = dataset_folder,
+                                   class_name = LABEL_NAMES,
+                                   is_train=True)                       
     test_EMG_dataset  = dataset.EMGDatasetLSTM(dataset_folder = dataset_folder,
                                    class_name = LABEL_NAMES,
                                    is_train=False)
     
     #学習と検証に使うデータセットのサイズを指定
-    train_dataset_size = int(0.8 * len(train_EMG_dataset))
-    val_dataset_size = len(train_EMG_dataset) - train_dataset_size
-    train_EMG_dataset, val_EMG_dataset = torch.utils.data.random_split(train_EMG_dataset, [train_dataset_size, val_dataset_size])
+    #train_dataset_size = int(0.8 * len(train_EMG_dataset))
+    train_dataset_size = len(train_EMG_dataset)
+    val_dataset_size = len(val_EMG_dataset)
+    #val_dataset_size = len(train_EMG_dataset) - train_dataset_size
+    #train_EMG_dataset, val_EMG_dataset = torch.utils.data.random_split(train_EMG_dataset, [train_dataset_size, val_dataset_size])
 
     #dataloaderの生成
     Train_DataLoader = DataLoader(train_EMG_dataset,

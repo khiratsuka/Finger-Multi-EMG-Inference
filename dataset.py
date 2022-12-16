@@ -1,10 +1,12 @@
-import os
 import csv
+import os
+
 import numpy as np
 import torch
 from torch.utils.data import Dataset
 
 from settings import *
+
 
 #データセットの定義
 class EMGDataset(Dataset):
@@ -31,12 +33,12 @@ class EMGDataset(Dataset):
 
             #FFTの実行、負の周波数の分もそのまま使う(使わない場合はN/2する)
             emg_fft_data = np.abs(np.fft.fft(emg_data)).astype('float32')
-            max_emg_val = np.max(emg_data)
-            min_emg_val = np.min(emg_data)
+            max_emg_val = np.max(emg_fft_data)
+            min_emg_val = np.min(emg_fft_data)
 
             #振幅の正規化
             for i in range(len(emg_fft_data)):
-                emg_fft_data[i] = (emg_data[i] - min_emg_val) / (max_emg_val - min_emg_val)
+                emg_fft_data[i] = (emg_fft_data[i] - min_emg_val) / (max_emg_val - min_emg_val)
             
             emg_sensors_data.append(emg_fft_data)
         return emg_sensors_data, correct_class
@@ -112,18 +114,16 @@ class EMGDatasetLSTM(Dataset):
                 csv_reader = csv.reader(f)
                 for row in csv_reader:
                     emg_csv_data.append(float(row[0]))
-            emg_data = np.array(emg_csv_data)
+            emg_data = np.array(emg_csv_data).astype('float32')
 
-            #FFTの実行、負の周波数の分もそのまま使う(使わない場合はN/2する)
-            emg_fft_data = np.abs(np.fft.fft(emg_data)).astype('float32')
             max_emg_val = np.max(emg_data)
             min_emg_val = np.min(emg_data)
 
             #振幅の正規化
-            for i in range(len(emg_fft_data)):
-                emg_fft_data[i] = (emg_data[i] - min_emg_val) / (max_emg_val - min_emg_val)
+            for i in range(len(emg_data)):
+                emg_data[i] = (emg_data[i] - min_emg_val) / (max_emg_val - min_emg_val)
             
-            emg_sensors_data.append(emg_fft_data)
+            emg_sensors_data.append(emg_data)
         
         emg_sensors_data_tensor = torch.tensor(emg_sensors_data)
         emg_sensors_data_tensor = torch.t(emg_sensors_data_tensor)

@@ -4,6 +4,7 @@ import torch.nn as nn
 
 from settings import *
 
+
 #LinearとReluをひとまとめにしたモジュール
 class FullConnect_Relu(nn.Module):
     def __init__(self, input_size, output_size, is_relu=True):
@@ -104,4 +105,7 @@ class EMG_Inference_Model_LSTM(nn.Module):
 
     def forward(self, data):
         output, (last_hidden_out, last_cell_out) = self.lstm_layer(data, None)
-        return output, last_hidden_out, last_cell_out
+        last_hidden_out = last_hidden_out.view(-1, self.hidden_size)
+        out = self.fc_layer(last_hidden_out)
+
+        return out

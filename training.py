@@ -1,11 +1,13 @@
 # coding: utf-8
 import datetime
+
+import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 from tqdm import tqdm
-import matplotlib.pyplot as plt
 
 from settings import *
+
 
 def train(net, dataloader, epoch, criterion, optimizer, device):
     #ネットワークを学習モードにする
