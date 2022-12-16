@@ -53,9 +53,9 @@ class Full_Connect_Relu_All(nn.Module):
         return x
 
 
-class EMG_Inference_Model(nn.Module):
+class EMG_Inference_Model_Linear(nn.Module):
     def __init__(self):
-        super(EMG_Inference_Model, self).__init__()
+        super(EMG_Inference_Model_Linear, self).__init__()
 
         #入力層のサイズは、1秒あたりのデータ数と何秒取るかを決めてから実際に測定して決める
         #https://b.meso.tokyo/post/173610335934/stm32-nucleo-adc この辺参考になるかも
@@ -86,3 +86,22 @@ class EMG_Inference_Model(nn.Module):
         return all_ch
 
 
+class EMG_Inference_Model_LSTM(nn.Module):
+    def __init__(self, input_size, hidden_size, num_layers=1, label_size=len(LABEL_ID), batch_first=True):
+        super(EMG_Inference_Model_LSTM, self).__init__()
+
+        self.input_size = input_size
+        self.hidden_size = hidden_size
+        self.num_layers = num_layers
+        self.label_size = label_size
+        self.batch_first = batch_first
+
+        self.lstm_layer = nn.LSTM(input_size=self.input_size,
+                                  hidden_size=self.hidden_size,
+                                  num_layers=self.num_layers,
+                                  batch_first=self.batch_first)
+        self.fc_layer = nn.Linear(self.hidden_size, self.label_size)
+
+    def forward(self, data):
+        output, (last_hidden_out, last_cell_out) = self.lstm_layer(data, None)
+        return output, last_hidden_out, last_cell_out

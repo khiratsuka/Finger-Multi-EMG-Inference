@@ -1,12 +1,9 @@
 # coding: utf-8
 import os
 import datetime
-import csv
-import numpy as np
 import torch
 import torch.nn as nn
 from torch import optim
-from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 
@@ -29,10 +26,10 @@ def main():
         os.makedirs(result_folder)
 
     #datasetの生成
-    train_EMG_dataset = dataset.EMGDataset(dataset_folder = dataset_folder,
+    train_EMG_dataset = dataset.EMGDatasetLSTM(dataset_folder = dataset_folder,
                                    class_name = LABEL_NAMES,
                                    is_train=True)
-    test_EMG_dataset  = dataset.EMGDataset(dataset_folder = dataset_folder,
+    test_EMG_dataset  = dataset.EMGDatasetLSTM(dataset_folder = dataset_folder,
                                    class_name = LABEL_NAMES,
                                    is_train=False)
     
@@ -62,7 +59,7 @@ def main():
                                   pin_memory=True)
 
     #モデルの宣言
-    net = model.EMG_Inference_Model().to(device)
+    net = model.EMG_Inference_Model_LSTM(input_size=CH_NUM, hidden_size=8500).to(device)
 
     #学習に使う損失とオプティマイザの定義
     criterion = nn.CrossEntropyLoss()
