@@ -93,7 +93,7 @@ class EMGDataset(Dataset):
         return file_count
 
 
-#データセットの定義
+#LSTM用のデータセット
 class EMGDatasetLSTM(Dataset):
     def __init__(self, dataset_folder='./dataset',
                  class_name='hoge',
@@ -108,12 +108,21 @@ class EMGDatasetLSTM(Dataset):
         emg_sensors_data = []
 
         #データの読み込み
+        #センサは1kHz以上のADCであればOKであるとの記述あり
+        #1sあたりのデータを1k程度にする(平均を取る)
         for i in range(len(emg_data_path)):
             emg_csv_data = []
+            num_data = 0
+            temp_data = 0.0
             with open(emg_data_path[i]) as f:
                 csv_reader = csv.reader(f)
                 for row in csv_reader:
-                    emg_csv_data.append(float(row[0]))
+                    temp_data += float(row[0])
+                    num_data += 1
+                    if num_data >= 4:
+                        emg_csv_data.append(temp_data/float(num_data))
+                        num_data = 0
+            
             emg_data = np.array(emg_csv_data).astype('float32')
 
             max_emg_val = np.max(emg_data)
@@ -127,7 +136,6 @@ class EMGDatasetLSTM(Dataset):
         
         emg_sensors_data_tensor = torch.tensor(emg_sensors_data)
         emg_sensors_data_tensor = torch.t(emg_sensors_data_tensor)
-
         return emg_sensors_data_tensor, correct_class
 
     def __len__(self):

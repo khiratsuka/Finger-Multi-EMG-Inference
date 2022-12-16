@@ -64,7 +64,7 @@ def main():
                                   pin_memory=True)
 
     #モデルの宣言
-    net = model.EMG_Inference_Model_LSTM(input_size=CH_NUM, hidden_size=8500).to(device)
+    net = model.EMG_Inference_Model_LSTM(input_size=CH_NUM, hidden_size=int(8500/4)).to(device)
 
     #学習に使う損失とオプティマイザの定義
     criterion = nn.CrossEntropyLoss()

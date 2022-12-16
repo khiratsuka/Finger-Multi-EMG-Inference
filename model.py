@@ -86,7 +86,7 @@ class EMG_Inference_Model_Linear(nn.Module):
         all_ch = self.fc_relu_all(ch0, ch1, ch2, ch3, ch4, ch5, ch6, ch7)
         return all_ch
 
-
+#LSTM
 class EMG_Inference_Model_LSTM(nn.Module):
     def __init__(self, input_size, hidden_size, num_layers=1, label_size=len(LABEL_ID), batch_first=True):
         super(EMG_Inference_Model_LSTM, self).__init__()
