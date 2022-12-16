@@ -26,13 +26,13 @@ def main():
         os.makedirs(result_folder)
 
     #datasetの生成
-    train_EMG_dataset = dataset.EMGDatasetLSTM(dataset_folder = dataset_folder,
+    train_EMG_dataset = dataset.EMGDatasetFFT(dataset_folder = dataset_folder,
                                    class_name = LABEL_NAMES,
                                    is_train=True)
-    val_EMG_dataset = dataset.EMGDatasetLSTM(dataset_folder = dataset_folder,
+    val_EMG_dataset = dataset.EMGDatasetFFT(dataset_folder = dataset_folder,
                                    class_name = LABEL_NAMES,
                                    is_train=True)                       
-    test_EMG_dataset  = dataset.EMGDatasetLSTM(dataset_folder = dataset_folder,
+    test_EMG_dataset  = dataset.EMGDatasetFFT(dataset_folder = dataset_folder,
                                    class_name = LABEL_NAMES,
                                    is_train=False)
     
@@ -51,20 +51,21 @@ def main():
                                   drop_last=True,
                                   pin_memory=True)
     Val_DataLoader   = DataLoader(val_EMG_dataset,
-                                  batch_size=2,
+                                  batch_size=batch_size,
                                   shuffle=True,
                                   num_workers=1,
                                   drop_last=True,
                                   pin_memory=True)
     Test_DataLoader  = DataLoader(test_EMG_dataset,
-                                  batch_size=1,
+                                  batch_size=batch_size,
                                   shuffle=True,
                                   num_workers=2,
                                   drop_last=True,
                                   pin_memory=True)
 
     #モデルの宣言
-    net = model.EMG_Inference_Model_LSTM(input_size=CH_NUM, hidden_size=int(8500/4)).to(device)
+    net = model.EMG_Inference_Model_Linear(input_size=int(RAW_DATA_LENGTH/2)).to(device)
+    #net = model.EMG_Inference_Model_LSTM(input_size=CH_NUM, hidden_size=int(RAW_DATA_LENGTH/4)).to(device)
 
     #学習に使う損失とオプティマイザの定義
     criterion = nn.CrossEntropyLoss()

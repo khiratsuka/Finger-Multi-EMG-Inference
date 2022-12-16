@@ -21,9 +21,7 @@ def train(net, dataloader, epoch, criterion, optimizer, device):
         for data, label in dataloader:
             #データとクラスのラベルを学習するデバイスに載せる
             data = data.to(device)
-            #print(data.shape)
-            #ch0, ch1, ch2, ch3, ch4, ch5, ch6, ch7 = data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]
-            #ch0, ch1, ch2, ch3, ch4, ch5, ch6, ch7 = ch0.to(device), ch1.to(device), ch2.to(device), ch3.to(device), ch4.to(device), ch5.to(device), ch6.to(device), ch7.to(device)
+            data = torch.reshape(data, (data.size(1), data.size(0), data.size(2)))
             label = label.to(device)
 
             #順伝搬
@@ -67,6 +65,7 @@ def val_test(net, mode, dataloader, epoch, criterion, device):
             for data, label in dataloader:
                 #データとクラスのラベルを学習するデバイスに載せる
                 data = data.to(device)
+                data = torch.reshape(data, (data.size(1), data.size(0), data.size(2)))
                 label = label.to(device)
 
                 #順伝搬

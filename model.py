@@ -55,14 +55,13 @@ class Full_Connect_Relu_All(nn.Module):
 
 
 class EMG_Inference_Model_Linear(nn.Module):
-    def __init__(self):
+    def __init__(self, input_size, num_classes=len(LABEL_ID)):
         super(EMG_Inference_Model_Linear, self).__init__()
 
         #入力層のサイズは、1秒あたりのデータ数と何秒取るかを決めてから実際に測定して決める
         #https://b.meso.tokyo/post/173610335934/stm32-nucleo-adc この辺参考になるかも
-        self.input_size = 8500
-        self.num_classes = len(LABEL_ID)
-
+        self.input_size = input_size
+        self.num_classes = num_classes
         self.fc_relu_ch0 = FullConnect_Relu_Ch(self.input_size)
         self.fc_relu_ch1 = FullConnect_Relu_Ch(self.input_size)
         self.fc_relu_ch2 = FullConnect_Relu_Ch(self.input_size)
@@ -74,21 +73,21 @@ class EMG_Inference_Model_Linear(nn.Module):
 
         self.fc_relu_all = Full_Connect_Relu_All(self.input_size)
 
-    def forward(self, ch0, ch1, ch2, ch3, ch4, ch5, ch6, ch7):
-        ch0 = self.fc_relu_ch0(ch0)
-        ch1 = self.fc_relu_ch1(ch1)
-        ch2 = self.fc_relu_ch2(ch2)
-        ch3 = self.fc_relu_ch3(ch3)
-        ch4 = self.fc_relu_ch4(ch4)
-        ch5 = self.fc_relu_ch5(ch5)
-        ch6 = self.fc_relu_ch6(ch6)
-        ch7 = self.fc_relu_ch7(ch7)
+    def forward(self, data):
+        ch0 = self.fc_relu_ch0(data[0])
+        ch1 = self.fc_relu_ch1(data[1])
+        ch2 = self.fc_relu_ch2(data[2])
+        ch3 = self.fc_relu_ch3(data[3])
+        ch4 = self.fc_relu_ch4(data[4])
+        ch5 = self.fc_relu_ch5(data[5])
+        ch6 = self.fc_relu_ch6(data[6])
+        ch7 = self.fc_relu_ch7(data[7])
         all_ch = self.fc_relu_all(ch0, ch1, ch2, ch3, ch4, ch5, ch6, ch7)
         return all_ch
 
 #LSTM
 class EMG_Inference_Model_LSTM(nn.Module):
-    def __init__(self, input_size, hidden_size, num_layers=1, label_size=len(LABEL_ID), batch_first=True):
+    def __init__(self, input_size, hidden_size, num_layers=1, label_size=len(LABEL_ID), batch_first=False):
         super(EMG_Inference_Model_LSTM, self).__init__()
 
         self.input_size = input_size
