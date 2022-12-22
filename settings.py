@@ -10,5 +10,5 @@ CH_NUM = 8
 RAW_DATA_LENGTH = 4100
 
 batch_size = 1
-num_epochs = 1
+num_epochs = 200
 lr = 0.01

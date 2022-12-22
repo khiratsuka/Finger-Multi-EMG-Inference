@@ -67,7 +67,6 @@ def val_test(net, mode, dataloader, epoch, criterion, device):
                 data = data.to(device)
                 data = torch.reshape(data, (data.size(1), data.size(0), data.size(2))).float()
                 label = label.to(device)
-
                 #順伝搬
                 pred = net(data)
 
@@ -87,7 +86,7 @@ def val_test(net, mode, dataloader, epoch, criterion, device):
                 epoch_loss += float(loss.item()) * float(data.size(0))
 
                 pb.update(1)
-    
+                
     return epoch_loss, epoch_acc
 
 

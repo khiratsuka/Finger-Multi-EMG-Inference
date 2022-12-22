@@ -33,9 +33,10 @@ def main():
                                    class_name = LABEL_NAMES,
                                    is_train=False)
     
-    #学習と検証に使うデータセットのサイズを指定
+    #学習と検証とテストに使うデータセットのサイズを指定
     train_dataset_size = int(0.9 * len(train_EMG_dataset))
     val_dataset_size = len(train_EMG_dataset) - train_dataset_size
+    test_dataset_size = len(test_EMG_dataset)
     train_EMG_dataset, val_EMG_dataset = torch.utils.data.random_split(train_EMG_dataset, [train_dataset_size, val_dataset_size])
 
     #dataloaderの生成
@@ -62,7 +63,7 @@ def main():
     net = model.EMG_Inference_Model_Linear(input_size=RAW_DATA_LENGTH).to(device)
     #net = model.EMG_Inference_Model_LSTM(input_size=CH_NUM, hidden_size=int(RAW_DATA_LENGTH/4)).to(device)
 
-    #学習に使う損失とオプティマイザの定義
+    #学習に使う損失関数とオプティマイザの定義
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(params=net.parameters(), lr=lr)
 
@@ -127,7 +128,7 @@ def main():
     
     #テストフェーズ
     test_loss, test_acc = training.val_test(net, 'test', Test_DataLoader, epoch, criterion, device)
-    print('test_acc = {}'.format(test_acc))
+    print('test_acc = {}'.format(test_acc/test_dataset_size))
 
     metrics = ['loss', 'acc']
     training.output_learningcurve(history, metrics, result_folder)
