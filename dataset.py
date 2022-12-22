@@ -1,5 +1,6 @@
 import csv
 import os
+import glob
 
 import numpy as np
 import torch
@@ -101,8 +102,8 @@ class EMGDatasetRawData(Dataset):
         return file_count
 
 
-#Raw-wave Dataset(1KHz Data)
-class EMGDatasetRaw1kHz(Dataset):
+#Raw-wave Dataset(mean Data)
+class EMGDatasetRawMean(Dataset):
     def __init__(self, dataset_folder='./dataset',
                  class_name='hoge',
                  support_lstm = False,

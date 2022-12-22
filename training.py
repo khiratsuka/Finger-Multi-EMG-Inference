@@ -21,7 +21,7 @@ def train(net, dataloader, epoch, criterion, optimizer, device):
         for data, label in dataloader:
             #データとクラスのラベルを学習するデバイスに載せる
             data = data.to(device)
-            data = torch.reshape(data, (data.size(1), data.size(0), data.size(2)))
+            data = torch.reshape(data, (data.size(1), data.size(0), data.size(2))).float()
             label = label.to(device)
 
             #順伝搬
@@ -65,7 +65,7 @@ def val_test(net, mode, dataloader, epoch, criterion, device):
             for data, label in dataloader:
                 #データとクラスのラベルを学習するデバイスに載せる
                 data = data.to(device)
-                data = torch.reshape(data, (data.size(1), data.size(0), data.size(2)))
+                data = torch.reshape(data, (data.size(1), data.size(0), data.size(2))).float()
                 label = label.to(device)
 
                 #順伝搬

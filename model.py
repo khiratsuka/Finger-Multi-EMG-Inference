@@ -103,6 +103,7 @@ class EMG_Inference_Model_LSTM(nn.Module):
         self.fc_layer = nn.Linear(self.hidden_size, self.label_size)
 
     def forward(self, data):
+        data = torch.reshape(data, (data.size(2), data.size(1), data.size(0)))
         output, (last_hidden_out, last_cell_out) = self.lstm_layer(data, None)
         last_hidden_out = last_hidden_out.view(-1, self.hidden_size)
         out = self.fc_layer(last_hidden_out)

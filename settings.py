@@ -7,8 +7,8 @@ for key, val in LABEL_NAMES_DICT.items():
     LABEL_NAMES.append(key)
 
 CH_NUM = 8
-RAW_DATA_LENGTH = 8500
+RAW_DATA_LENGTH = 4100
 
 batch_size = 1
-num_epochs = 1000
+num_epochs = 1
 lr = 0.01

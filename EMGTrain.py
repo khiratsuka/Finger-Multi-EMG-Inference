@@ -26,22 +26,17 @@ def main():
         os.makedirs(result_folder)
 
     #datasetの生成
-    train_EMG_dataset = dataset.EMGDatasetFFT(dataset_folder = dataset_folder,
+    train_EMG_dataset = dataset.EMGDatasetRawData(dataset_folder = dataset_folder,
                                    class_name = LABEL_NAMES,
-                                   is_train=True)
-    val_EMG_dataset = dataset.EMGDatasetFFT(dataset_folder = dataset_folder,
-                                   class_name = LABEL_NAMES,
-                                   is_train=True)                       
-    test_EMG_dataset  = dataset.EMGDatasetFFT(dataset_folder = dataset_folder,
+                                   is_train=True)                     
+    test_EMG_dataset  = dataset.EMGDatasetRawData(dataset_folder = dataset_folder,
                                    class_name = LABEL_NAMES,
                                    is_train=False)
     
     #学習と検証に使うデータセットのサイズを指定
-    #train_dataset_size = int(0.8 * len(train_EMG_dataset))
-    train_dataset_size = len(train_EMG_dataset)
-    val_dataset_size = len(val_EMG_dataset)
-    #val_dataset_size = len(train_EMG_dataset) - train_dataset_size
-    #train_EMG_dataset, val_EMG_dataset = torch.utils.data.random_split(train_EMG_dataset, [train_dataset_size, val_dataset_size])
+    train_dataset_size = int(0.9 * len(train_EMG_dataset))
+    val_dataset_size = len(train_EMG_dataset) - train_dataset_size
+    train_EMG_dataset, val_EMG_dataset = torch.utils.data.random_split(train_EMG_dataset, [train_dataset_size, val_dataset_size])
 
     #dataloaderの生成
     Train_DataLoader = DataLoader(train_EMG_dataset,
@@ -64,7 +59,7 @@ def main():
                                   pin_memory=True)
 
     #モデルの宣言
-    net = model.EMG_Inference_Model_Linear(input_size=int(RAW_DATA_LENGTH/2)).to(device)
+    net = model.EMG_Inference_Model_Linear(input_size=RAW_DATA_LENGTH).to(device)
     #net = model.EMG_Inference_Model_LSTM(input_size=CH_NUM, hidden_size=int(RAW_DATA_LENGTH/4)).to(device)
 
     #学習に使う損失とオプティマイザの定義
@@ -143,8 +138,10 @@ def main():
         os.makedirs(model_folder)
 
     #モデルの保存
-    full_model_name = 'finger_multi_emg_full' + start_time.strftime("%Y_%m_%d_%H%M%S") + '.pth'
-    dict_model_name = 'finger_multi_emg' + start_time.strftime("%Y_%m_%d_%H%M%S") + '.pth'
+    net.eval()
+    net = net.to('cpu')
+    full_model_name = 'finger_multi_emg_full_' + start_time.strftime("%Y_%m_%d_%H%M%S") + '.pth'
+    dict_model_name = 'finger_multi_emg_' + start_time.strftime("%Y_%m_%d_%H%M%S") + '.pth'
     torch.save(net, model_folder + full_model_name)
     torch.save(net.state_dict(), model_folder + dict_model_name)
 
