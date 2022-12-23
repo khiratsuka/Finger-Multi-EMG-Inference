@@ -1,5 +1,6 @@
 # coding: utf-8
-import datetime
+import os
+import csv
 
 import matplotlib.pyplot as plt
 import torch
@@ -90,23 +91,50 @@ def val_test(net, mode, dataloader, epoch, criterion, device):
     return epoch_loss, epoch_acc
 
 
-def output_learningcurve(data, metrics, result_folder='./result/'):
-    plt.figure(figsize=(10, 5))
+def outputLearningCurve(data, metrics, start_time, result_folder='./result/'):
+    plt.figure(figsize=(16, 9))
     for i in range(len(metrics)):
         metric = metrics[i]
 
         plt.subplot(1, 2, i+1)
-        plt.title(metric)
+        plt.title(metric, fontsize=25)
         plt_train = data['train_' + metric]
         plt_val   = data['val_'   + metric]
         plt.plot(plt_train, label='train')
         plt.plot(plt_val,   label='val')
         if metric  == 'loss':
-            plt.ylabel('loss')
+            plt.ylabel('loss', fontsize=23)
         elif metric == 'acc':
-            plt.ylabel('accuracy')
-        plt.xlabel('epoch')
-        plt.legend()
-    now = datetime.datetime.now()
-    fname = now.strftime("%Y_%m_%d_%H%M%S") + '_eval.png'
+            plt.ylabel('accuracy', fontsize=23)
+        plt.xlabel('epoch', fontsize=23)
+        plt.legend(fontsize=20)
+        plt.tick_params(labelsize=20)
+    
+    fname = start_time.strftime("%Y_%m_%d_%H%M%S") + '_eval.png'
     plt.savefig(result_folder+fname)
+
+
+def outputLearningCurveValue(data, start_time, result_folder='./learning_curve_csv'):
+    output_folder = start_time.strftime("%Y_%m_%d_%H%M%S")
+    output_path = os.path.join(result_folder, output_folder)
+    pathes = {}
+    
+    #フォルダ作成
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
+    
+    #それぞれのファイルのパス
+    pathes['train_loss'] = os.path.join(output_path, 'train_loss.csv')
+    pathes['train_acc'] = os.path.join(output_path, 'train_acc.csv')
+    pathes['val_loss'] = os.path.join(output_path, 'val_loss.csv')
+    pathes['val_acc'] = os.path.join(output_path, 'val_acc.csv')
+
+    #辞書形式になっているデータとパスを取り出して保存
+    for val_data, path in zip(data.values(), pathes.values()):
+        temp_val = []
+        for val in val_data :
+            temp_val.append(str(val) + '\n')
+        with open(path, 'w') as f:
+            f.writelines(temp_val)
+
+

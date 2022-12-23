@@ -131,7 +131,7 @@ def main():
     print('test_acc = {}'.format(test_acc/test_dataset_size))
 
     metrics = ['loss', 'acc']
-    training.output_learningcurve(history, metrics, result_folder)
+    training.outputLearningCurve(history, metrics, start_time, result_folder)
 
     #モデルを保存するフォルダの用意
     model_folder = './model/'
