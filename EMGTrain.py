@@ -26,10 +26,10 @@ def main():
         os.makedirs(result_folder)
 
     #datasetの生成
-    train_EMG_dataset = dataset.EMGDatasetRawData(dataset_folder = dataset_folder,
+    train_EMG_dataset = dataset.EMGDatasetFFT(dataset_folder = dataset_folder,
                                    class_name = LABEL_NAMES,
                                    is_train=True)                     
-    test_EMG_dataset  = dataset.EMGDatasetRawData(dataset_folder = dataset_folder,
+    test_EMG_dataset  = dataset.EMGDatasetFFT(dataset_folder = dataset_folder,
                                    class_name = LABEL_NAMES,
                                    is_train=False)
     

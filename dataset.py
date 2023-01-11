@@ -1,6 +1,6 @@
 import csv
-import os
 import glob
+import os
 
 import numpy as np
 import torch
@@ -216,12 +216,8 @@ class EMGDatasetFFT(Dataset):
         emg_sensors_data = []
 
         #データの読み込み
-        #センサは1kHz以上のADCであればOKであるとの記述あり
-        #1sあたりのデータを1k程度にする(平均を取る)
         for i in range(len(emg_data_path)):
             emg_csv_data = []
-            num_data = 0
-            temp_data = 0.0
             with open(emg_data_path[i]) as f:
                 csv_reader = csv.reader(f)
                 for row in csv_reader:
@@ -231,7 +227,7 @@ class EMGDatasetFFT(Dataset):
 
             #FFTの実行、正の周波数のみ使う
             emg_fft_data = np.abs(np.fft.fft(emg_data)).astype('float32')
-            emg_fft_data = emg_fft_data[0:int(len(emg_fft_data)/2)]
+            #emg_fft_data = emg_fft_data[0:int(len(emg_fft_data)/2)]
 
             #振幅の正規化
             for i in range(len(emg_fft_data)):
