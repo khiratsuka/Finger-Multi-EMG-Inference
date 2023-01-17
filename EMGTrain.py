@@ -34,7 +34,7 @@ def main():
                                    is_train=False)
     
     #学習と検証とテストに使うデータセットのサイズを指定
-    train_dataset_size = int(0.9 * len(train_EMG_dataset))
+    train_dataset_size = int(0.938 * len(train_EMG_dataset))
     val_dataset_size = len(train_EMG_dataset) - train_dataset_size
     test_dataset_size = len(test_EMG_dataset)
     train_EMG_dataset, val_EMG_dataset = torch.utils.data.random_split(train_EMG_dataset, [train_dataset_size, val_dataset_size])
@@ -131,7 +131,8 @@ def main():
     print('test_acc = {}'.format(test_acc/test_dataset_size))
 
     metrics = ['loss', 'acc']
-    training.outputLearningCurve(history, metrics, start_time, result_folder)
+    training.outputLearningCurve(history, metrics, start_time)
+    training.outputLearningCurveValue(history, start_time)
 
     #モデルを保存するフォルダの用意
     model_folder = './model/'

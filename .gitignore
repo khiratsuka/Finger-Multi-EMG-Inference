@@ -187,6 +187,6 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
-dataset
-model
+dataset*
+model*
 .vscode
