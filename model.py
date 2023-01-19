@@ -27,41 +27,49 @@ class FullConnect_Relu_Ch(nn.Module):
         super(FullConnect_Relu_Ch, self).__init__()
         self.fc_relu_ch_in = FullConnect_Relu(input_size, int(input_size/2))
         #self.fc_relu_ch_hidden = FullConnect_Relu(int(input_size/2), int(input_size/2))
+        #self.dropout_0 = nn.Dropout(0.3)
         self.fc_ch_out = FullConnect_Relu(int(input_size/2), input_size, is_relu=False)
+        #self.dropout_1 = nn.Dropout(0.3)
     
     def forward(self, x):
         x = self.fc_relu_ch_in(x)
         #x = self.fc_relu_ch_hidden(x)
+        #x = self.dropout_0(x)
         x = self.fc_ch_out(x)
+        #x = self.dropout_1(x)
         return x
 
 
 #各センサのネットワークで得られたベクトルを結合して全結合層へ流すネットワーク
 class Full_Connect_Relu_All(nn.Module):
-    def __init__(self, ch_input_size):
+    def __init__(self, ch_input_size, output_size=len(LABEL_ID)):
         super(Full_Connect_Relu_All, self).__init__()
         input_size = ch_input_size * 8
         
         self.fc_relu_all_in = FullConnect_Relu(input_size, int(input_size/2))
         #self.fc_relu_all_hidden = FullConnect_Relu(int(input_size/2), int(input_size/2))
-        self.fc_relu_all_out = FullConnect_Relu(int(input_size/2), len(LABEL_ID), is_relu=False)
+        #self.dropout = nn.Dropout(0.3)
+        self.fc_relu_all_out = FullConnect_Relu(int(input_size/2), output_size, is_relu=False)
     
     def forward(self, ch0, ch1, ch2, ch3, ch4, ch5, ch6, ch7):
         x = torch.cat((ch0, ch1, ch2, ch3, ch4, ch5, ch6, ch7), 1)
         x = self.fc_relu_all_in(x)
         #x = self.fc_relu_all_hidden(x)
+        #x = self.dropout(x)
         x = self.fc_relu_all_out(x)
         return x
 
 
 class EMG_Inference_Model_Linear(nn.Module):
-    def __init__(self, input_size, num_classes=len(LABEL_ID)):
+    def __init__(self, input_size, num_classes=len(LABEL_ID), is_transfer_train=False):
         super(EMG_Inference_Model_Linear, self).__init__()
 
         #入力層のサイズは、1秒あたりのデータ数と何秒取るかを決めてから実際に測定して決める
         #https://b.meso.tokyo/post/173610335934/stm32-nucleo-adc この辺参考になるかも
         self.input_size = input_size
         self.num_classes = num_classes
+        if is_transfer_train:
+            self.num_classes = len(LABEL_ID_FINGER)
         self.fc_relu_ch0 = FullConnect_Relu_Ch(self.input_size)
         self.fc_relu_ch1 = FullConnect_Relu_Ch(self.input_size)
         self.fc_relu_ch2 = FullConnect_Relu_Ch(self.input_size)
@@ -71,7 +79,7 @@ class EMG_Inference_Model_Linear(nn.Module):
         self.fc_relu_ch6 = FullConnect_Relu_Ch(self.input_size)
         self.fc_relu_ch7 = FullConnect_Relu_Ch(self.input_size)
 
-        self.fc_relu_all = Full_Connect_Relu_All(self.input_size)
+        self.fc_relu_all = Full_Connect_Relu_All(self.input_size, output_size=self.num_classes)
 
     def forward(self, data):
         ch0 = self.fc_relu_ch0(data[0])

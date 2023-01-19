@@ -20,7 +20,7 @@ def main():
     start_time = datetime.datetime.now()
     
     #データセットと結果保存のフォルダの宣言と作成
-    dataset_folder = './dataset/'
+    dataset_folder = './dataset_full/'
     result_folder = './result/'
     if not os.path.exists(result_folder):
         os.makedirs(result_folder)
@@ -60,12 +60,39 @@ def main():
                                   pin_memory=True)
 
     #モデルの宣言
-    net = model.EMG_Inference_Model_Linear(input_size=RAW_DATA_LENGTH).to(device)
+    net = model.EMG_Inference_Model_Linear(input_size=RAW_DATA_LENGTH, is_transfer_train=True)
     #net = model.EMG_Inference_Model_LSTM(input_size=CH_NUM, hidden_size=int(RAW_DATA_LENGTH/4)).to(device)
+
+    #モデルの読み込み
+    model_path = './model/Finger-RAW-FC/finger_multi_emg_2022_12_22_075210.pth'
+    net.load_state_dict(torch.load(model_path))
+
+    #最後のLinear層の出力数を変更
+    net.fc_relu_all.fc_relu_all_out.fc = nn.Linear(in_features=int(RAW_DATA_LENGTH*4), out_features=len(LABEL_ID))
+    net = net.to(device)
+    
+    #転移学習で更新するパラメータ格納
+    update_param = []
+    update_param_name = ['fc_relu_ch0.fc_relu_ch_out.fc.weight', 'fc_relu_ch0.fc_relu_ch_out.fc.bias',
+                         'fc_relu_ch1.fc_relu_ch_out.fc.weight', 'fc_relu_ch1.fc_relu_ch_out.fc.bias',
+                         'fc_relu_ch2.fc_relu_ch_out.fc.weight', 'fc_relu_ch2.fc_relu_ch_out.fc.bias',
+                         'fc_relu_ch3.fc_relu_ch_out.fc.weight', 'fc_relu_ch3.fc_relu_ch_out.fc.bias',
+                         'fc_relu_ch4.fc_relu_ch_out.fc.weight', 'fc_relu_ch4.fc_relu_ch_out.fc.bias',
+                         'fc_relu_ch5.fc_relu_ch_out.fc.weight', 'fc_relu_ch5.fc_relu_ch_out.fc.bias',
+                         'fc_relu_ch6.fc_relu_ch_out.fc.weight', 'fc_relu_ch6.fc_relu_ch_out.fc.bias',
+                         'fc_relu_ch7.fc_relu_ch_out.fc.weight', 'fc_relu_ch7.fc_relu_ch_out.fc.bias',
+                         'fc_relu_all.fc_relu_all_out.fc.weight', 'fc_relu_all.fc_relu_all_out.fc.bias']
+
+    for name, param in net.named_parameters():
+        if name in update_param_name:
+            param.requires_grad = True
+            update_param.append(param)
+        else:
+            param.requires_grad = False
 
     #学習に使う損失関数とオプティマイザの定義
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(params=net.parameters(), lr=SGD_lr)
+    optimizer = optim.SGD(params=update_param, lr=SGD_lr)
 
     #学習曲線用
     history = {
@@ -74,18 +101,6 @@ def main():
         'val_loss':[],
         'val_acc':[]
     }
-
-    #学習曲線の描画用
-    fig, axes = plt.subplots(nrows=1, ncols=2, sharex=False, figsize=(14.0, 8.0))    #プロットエリアの設定
-    loss_train_lines,  = axes[0].plot(0, 0, '-ok')  #一度描画してlinesを取得
-    loss_val_lines,    = axes[0].plot(0, 0, '-or')  #一度描画してlinesを取得
-    acc_train_lines,   = axes[1].plot(0, 0, '-ok')  #一度描画してlinesを取得
-    acc_val_lines,     = axes[1].plot(0, 0, '-or')  #一度描画してlinesを取得
-    axes[0].set_xlim(0, num_epochs+1)    #x軸を最大値をエポック数+1へ
-    axes[1].set_xlim(0, num_epochs+1)    #x軸を最大値をエポック数+1へ
-    axes[0].set_title("loss")       #タイトルの設定
-    axes[1].set_title("accuracy")   #タイトルの設定
-    ax_x_list = []
 
     #モデルを保存するフォルダの用意
     model_folder = './model/'
@@ -104,26 +119,6 @@ def main():
         history['val_loss'].append(val_loss/val_dataset_size)
         history['val_acc'].append(val_acc/val_dataset_size)
 
-        #x軸の一覧リストに現在のエポックを追加
-        ax_x_list.append(epoch)
-
-        #y軸のmaxとminを求める
-        loss_y_min = min(history['train_loss']) if min(history['train_loss']) > min(history['val_loss']) else min(history['val_loss'])
-        acc_y_min = min(history['train_acc']) if min(history['train_acc']) > min(history['val_acc']) else min(history['val_acc'])
-        loss_y_max = max(history['train_loss']) if max(history['train_loss']) > max(history['val_loss']) else max(history['val_loss'])
-        acc_y_max = max(history['train_acc']) if max(history['train_acc']) > max(history['val_acc']) else max(history['val_acc'])
-
-        #y軸を更新
-        axes[0].set_ylim(loss_y_min-1, loss_y_max+1)
-        axes[1].set_ylim(acc_y_min-1, acc_y_max+1)
-
-        #学習曲線のリアルタイム描画
-        loss_train_lines.set_data(ax_x_list, history['train_loss'])
-        loss_val_lines.set_data(ax_x_list, history['val_loss'])
-        acc_train_lines.set_data(ax_x_list, history['train_acc'])
-        acc_val_lines.set_data(ax_x_list, history['val_acc'])
-        plt.pause(0.000000000001)
-
         print('----{} epochs----'.format(epoch))
         print('train_loss : ' + str(history['train_loss'][epoch]))
         print('train_acc : ' + str(history['train_acc'][epoch]))
@@ -137,9 +132,10 @@ def main():
             net = net.to('cpu')
             dict_model_name = 'finger_multi_emg_' + start_time.strftime("%Y_%m_%d_%H%M%S") + ' _' + str(epoch) + 'epoch' + '.pth'
             torch.save(net.state_dict(), model_folder + dict_model_name)
+            net = net.to(device)
         
     #テストフェーズ
-    test_loss, test_acc = training.val_test(net, 'test', Test_DataLoader, epoch, criterion, device)
+    test_loss, test_acc = training.val_test(net, 'test', Test_DataLoader, 0, criterion, device)
     print('test_acc = {}'.format(test_acc/test_dataset_size))
 
     metrics = ['loss', 'acc']

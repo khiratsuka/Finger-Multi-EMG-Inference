@@ -19,7 +19,7 @@ class EMGDatasetRawData(Dataset):
         self.class_name = class_name
         self.support_lstm = support_lstm
         self.is_train = is_train
-        self.data_path, self.correct_class = self._get_file_names()
+        self.data_path, self.correct_class = self._get_file_names()\
 
     def __getitem__(self, idx):
         emg_data_path, correct_class = self.data_path[idx], self.correct_class[idx]
@@ -28,8 +28,6 @@ class EMGDatasetRawData(Dataset):
         #データの読み込み
         for i in range(len(emg_data_path)):
             emg_csv_data = []
-            num_data = 0
-            temp_data = 0.0
             with open(emg_data_path[i]) as f:
                 csv_reader = csv.reader(f)
                 for row in csv_reader:
@@ -45,7 +43,7 @@ class EMGDatasetRawData(Dataset):
             
             emg_sensors_data.append(emg_data)
         
-        emg_sensors_data = torch.tensor(emg_sensors_data)
+        emg_sensors_data = torch.tensor(np.array(emg_sensors_data))
         
         if self.support_lstm:
             emg_sensors_data = torch.t(emg_sensors_data)
@@ -80,7 +78,6 @@ class EMGDatasetRawData(Dataset):
                     if not os.path.exists(data_name_path):
                         break
                     one_label_path.append(data_name_path)
-                
                 data_num += 1
 
                 if len(one_label_path) != 0:
@@ -90,7 +87,6 @@ class EMGDatasetRawData(Dataset):
                 one_label_path = []
 
         assert len(emg_data_path) == len(correct_class), 'number of emg_data and class are not same.'
-        #print(list(emg_data_path))
         return list(emg_data_path), list(correct_class)
     
     def checkNumberOfFiles(self, folder_path):
@@ -187,7 +183,6 @@ class EMGDatasetRawMean(Dataset):
                 one_label_path = []
 
         assert len(emg_data_path) == len(correct_class), 'number of emg_data and class are not same.'
-        #print(list(emg_data_path))
         return list(emg_data_path), list(correct_class)
     
     def checkNumberOfFiles(self, folder_path):
@@ -225,7 +220,7 @@ class EMGDatasetFFT(Dataset):
             
             emg_data = np.array(emg_csv_data)
 
-            #FFTの実行、正の周波数のみ使う
+            #FFTの実行
             emg_fft_data = np.abs(np.fft.fft(emg_data)).astype('float32')
             #emg_fft_data = emg_fft_data[0:int(len(emg_fft_data)/2)]
 
@@ -280,7 +275,6 @@ class EMGDatasetFFT(Dataset):
                 one_label_path = []
 
         assert len(emg_data_path) == len(correct_class), 'number of emg_data and class are not same.'
-        #print(list(emg_data_path))
         return list(emg_data_path), list(correct_class)
     
     def checkNumberOfFiles(self, folder_path):

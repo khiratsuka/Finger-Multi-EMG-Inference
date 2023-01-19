@@ -1,6 +1,6 @@
 # coding: utf-8
-import os
 import csv
+import os
 
 import matplotlib.pyplot as plt
 import torch
@@ -24,7 +24,7 @@ def train(net, dataloader, epoch, criterion, optimizer, device):
             data = data.to(device)
             data = torch.reshape(data, (data.size(1), data.size(0), data.size(2))).float()
             label = label.to(device)
-
+            
             #順伝搬
             optimizer.zero_grad()
             pred = net(data)
@@ -52,13 +52,17 @@ def train(net, dataloader, epoch, criterion, optimizer, device):
     return epoch_loss, epoch_acc
 
 
-def val_test(net, mode, dataloader, epoch, criterion, device):
+def val_test(net, mode, dataloader, epoch, criterion, device, isDetailOutput=False):
     #ネットワークを評価モードにする
     net.eval()
 
     #学習曲線用
     epoch_loss = 0.0
     epoch_acc = 0.0
+
+    #予測クラスと正解クラスの保存用
+    pred_class_list = []
+    correct_class_list = []
 
     with tqdm(total=len(dataloader), unit='batch', desc='[{}] {}epoch'.format(mode, epoch))as pb:
         #勾配の計算をしない
@@ -68,6 +72,8 @@ def val_test(net, mode, dataloader, epoch, criterion, device):
                 data = data.to(device)
                 data = torch.reshape(data, (data.size(1), data.size(0), data.size(2))).float()
                 label = label.to(device)
+                int_correct_label = int(label[0].to('cpu'))
+
                 #順伝搬
                 pred = net(data)
 
@@ -78,16 +84,30 @@ def val_test(net, mode, dataloader, epoch, criterion, device):
                 softmax = nn.Softmax(dim=1)
                 pred = softmax(pred)        #softmaxへ流して確率を求める
                 pred_of_label = torch.argmax(pred, dim=1)   #確率が1番大きいラベルを求める
+                int_pred_of_label = int(pred_of_label[0].to('cpu'))
                 for ln in range(len(label)):
                     if pred_of_label[ln] == label[ln]:
                         epoch_acc += 1.0
                 
+                #予測・正解クラスのリスト作成
+                pred_class = [k for k, v in LABEL_NAMES_DICT.items() if v == int_pred_of_label][0]
+                correct_class = [k for k, v in LABEL_NAMES_DICT.items() if v == int_correct_label][0]
+                pred_class_list.append(pred_class)
+                correct_class_list.append(correct_class)
 
                 #1バッチ分のlossを加算
                 epoch_loss += float(loss.item()) * float(data.size(0))
 
                 pb.update(1)
-                
+    
+    #予測・正解クラスをcsvへ出力
+    if isDetailOutput:
+        output_data = ['correct_class, pred_class\n']
+        for pred_c, correct_c in zip(pred_class_list, correct_class_list):
+            output_line_data = correct_c + ', ' + pred_c + '\n'
+            output_data.append(output_line_data)
+        return epoch_loss, epoch_acc, output_data
+    
     return epoch_loss, epoch_acc
 
 
