@@ -20,7 +20,7 @@ def main():
     start_time = datetime.datetime.now()
     
     #データセットと結果保存のフォルダの宣言と作成
-    dataset_folder = './dataset/'
+    dataset_folder = './dataset_finger/'
     result_folder = './result/'
     if not os.path.exists(result_folder):
         os.makedirs(result_folder)
@@ -34,7 +34,8 @@ def main():
                                    is_train=False)
     
     #学習と検証とテストに使うデータセットのサイズを指定
-    train_dataset_size = int(0.938 * len(train_EMG_dataset))
+    #train_dataset_size = 300
+    train_dataset_size = int(0.9 * len(train_EMG_dataset))
     val_dataset_size = len(train_EMG_dataset) - train_dataset_size
     test_dataset_size = len(test_EMG_dataset)
     train_EMG_dataset, val_EMG_dataset = torch.utils.data.random_split(train_EMG_dataset, [train_dataset_size, val_dataset_size])
@@ -60,8 +61,8 @@ def main():
                                   pin_memory=True)
 
     #モデルの宣言
-    net = model.EMG_Inference_Model_Linear(input_size=RAW_DATA_LENGTH).to(device)
-    #net = model.EMG_Inference_Model_LSTM(input_size=CH_NUM, hidden_size=int(RAW_DATA_LENGTH/4)).to(device)
+    #net = model.EMG_Inference_Model_Linear(input_size=RAW_DATA_LENGTH).to(device)
+    net = model.EMG_Inference_Model_LSTM(input_size=CH_NUM, hidden_size=int(RAW_DATA_LENGTH/4), num_layers=3).to(device)
 
     #学習に使う損失関数とオプティマイザの定義
     criterion = nn.CrossEntropyLoss()
@@ -137,7 +138,8 @@ def main():
             net = net.to('cpu')
             dict_model_name = 'finger_multi_emg_' + start_time.strftime("%Y_%m_%d_%H%M%S") + ' _' + str(epoch) + 'epoch' + '.pth'
             torch.save(net.state_dict(), model_folder + dict_model_name)
-        
+            net = net.to(device)
+
     #テストフェーズ
     test_loss, test_acc = training.val_test(net, 'test', Test_DataLoader, epoch, criterion, device)
     print('test_acc = {}'.format(test_acc/test_dataset_size))

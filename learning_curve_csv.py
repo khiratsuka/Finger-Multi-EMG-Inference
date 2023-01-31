@@ -1,8 +1,9 @@
 import csv
-import os
 import datetime
+import os
 
 import training
+
 
 def main():
     start_time = datetime.datetime.now()
@@ -31,7 +32,7 @@ def main():
     data['val_loss'] = val_loss
     data['val_acc'] = val_acc
     training.outputLearningCurveValue(data, start_time)
-    #training.output_learningcurve(data, ['loss', 'acc'])
+    training.outputLearningCurve(data, ['loss', 'acc'], start_time, './')
 
 if __name__ == '__main__':
     main()

@@ -220,8 +220,14 @@ class EMGDatasetFFT(Dataset):
             
             emg_data = np.array(emg_csv_data)
 
+            #hanning window
+            window = np.hanning(RAW_DATA_LENGTH)
+            emg_data = emg_data * window
+
             #FFTの実行
             emg_fft_data = np.abs(np.fft.fft(emg_data)).astype('float32')
+            acf = 1 / (sum(window)/RAW_DATA_LENGTH)
+            emg_fft_data = emg_fft_data * acf
             #emg_fft_data = emg_fft_data[0:int(len(emg_fft_data)/2)]
 
             #振幅の正規化
@@ -230,7 +236,7 @@ class EMGDatasetFFT(Dataset):
             
             emg_sensors_data.append(emg_fft_data)
 
-        emg_sensors_data = torch.tensor(emg_sensors_data)
+        emg_sensors_data = torch.tensor(np.array(emg_sensors_data))
 
         if self.support_lstm:
             emg_sensors_data = torch.t(emg_sensors_data)

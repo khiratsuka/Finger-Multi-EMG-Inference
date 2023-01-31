@@ -27,16 +27,16 @@ class FullConnect_Relu_Ch(nn.Module):
         super(FullConnect_Relu_Ch, self).__init__()
         self.fc_relu_ch_in = FullConnect_Relu(input_size, int(input_size/2))
         #self.fc_relu_ch_hidden = FullConnect_Relu(int(input_size/2), int(input_size/2))
-        #self.dropout_0 = nn.Dropout(0.3)
+        self.dropout_0 = nn.Dropout(0.3)
         self.fc_ch_out = FullConnect_Relu(int(input_size/2), input_size, is_relu=False)
-        #self.dropout_1 = nn.Dropout(0.3)
+        self.dropout_1 = nn.Dropout(0.3)
     
     def forward(self, x):
         x = self.fc_relu_ch_in(x)
         #x = self.fc_relu_ch_hidden(x)
-        #x = self.dropout_0(x)
+        x = self.dropout_0(x)
         x = self.fc_ch_out(x)
-        #x = self.dropout_1(x)
+        x = self.dropout_1(x)
         return x
 
 
@@ -48,14 +48,14 @@ class Full_Connect_Relu_All(nn.Module):
         
         self.fc_relu_all_in = FullConnect_Relu(input_size, int(input_size/2))
         #self.fc_relu_all_hidden = FullConnect_Relu(int(input_size/2), int(input_size/2))
-        #self.dropout = nn.Dropout(0.3)
+        self.dropout = nn.Dropout(0.3)
         self.fc_relu_all_out = FullConnect_Relu(int(input_size/2), output_size, is_relu=False)
     
     def forward(self, ch0, ch1, ch2, ch3, ch4, ch5, ch6, ch7):
         x = torch.cat((ch0, ch1, ch2, ch3, ch4, ch5, ch6, ch7), 1)
         x = self.fc_relu_all_in(x)
         #x = self.fc_relu_all_hidden(x)
-        #x = self.dropout(x)
+        x = self.dropout(x)
         x = self.fc_relu_all_out(x)
         return x
 
@@ -113,7 +113,8 @@ class EMG_Inference_Model_LSTM(nn.Module):
     def forward(self, data):
         data = torch.reshape(data, (data.size(2), data.size(1), data.size(0)))
         output, (last_hidden_out, last_cell_out) = self.lstm_layer(data, None)
-        last_hidden_out = last_hidden_out.view(-1, self.hidden_size)
+        last_hidden_out = last_hidden_out[self.num_layers-1].view(-1, self.hidden_size)
         out = self.fc_layer(last_hidden_out)
+
 
         return out

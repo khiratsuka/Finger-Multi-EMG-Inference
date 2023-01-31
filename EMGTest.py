@@ -15,11 +15,11 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 def main():              
     #データセットフォルダの宣言
-    dataset_folder = './dataset_full/'
+    dataset_folder = './dataset_key/'
 
     #モデルファイルの宣言
-    model_folder = './model/Key-RAW-FC/'
-    model_file = 'finger_multi_emg_2023_01_18_023027'
+    model_folder = './model/Key/'
+    model_file = 'Key-FC-RAW'
     model_path = model_folder + model_file + '.pth'
 
     #予測結果出力ファイルの宣言
@@ -45,9 +45,11 @@ def main():
 
     #モデルの宣言と読み込み
     net = model.EMG_Inference_Model_Linear(input_size=RAW_DATA_LENGTH).to(device)
-    net.load_state_dict(torch.load(model_path))
     #net = model.EMG_Inference_Model_LSTM(input_size=CH_NUM, hidden_size=int(RAW_DATA_LENGTH/4)).to(device)
-    
+    net.load_state_dict(torch.load(model_path))
+
+
+
     #学習に使う損失関数の定義
     criterion = nn.CrossEntropyLoss()
 

@@ -72,27 +72,34 @@ def main():
     net = net.to(device)
     
     #転移学習で更新するパラメータ格納
-    update_param = []
-    update_param_name = ['fc_relu_ch0.fc_relu_ch_out.fc.weight', 'fc_relu_ch0.fc_relu_ch_out.fc.bias',
-                         'fc_relu_ch1.fc_relu_ch_out.fc.weight', 'fc_relu_ch1.fc_relu_ch_out.fc.bias',
-                         'fc_relu_ch2.fc_relu_ch_out.fc.weight', 'fc_relu_ch2.fc_relu_ch_out.fc.bias',
-                         'fc_relu_ch3.fc_relu_ch_out.fc.weight', 'fc_relu_ch3.fc_relu_ch_out.fc.bias',
-                         'fc_relu_ch4.fc_relu_ch_out.fc.weight', 'fc_relu_ch4.fc_relu_ch_out.fc.bias',
-                         'fc_relu_ch5.fc_relu_ch_out.fc.weight', 'fc_relu_ch5.fc_relu_ch_out.fc.bias',
-                         'fc_relu_ch6.fc_relu_ch_out.fc.weight', 'fc_relu_ch6.fc_relu_ch_out.fc.bias',
-                         'fc_relu_ch7.fc_relu_ch_out.fc.weight', 'fc_relu_ch7.fc_relu_ch_out.fc.bias',
-                         'fc_relu_all.fc_relu_all_out.fc.weight', 'fc_relu_all.fc_relu_all_out.fc.bias']
+    update_param_transfer_train = []
+    update_param_transfer_train_name = [#'fc_relu_ch0.fc_relu_ch_out.fc.weight', 'fc_relu_ch0.fc_relu_ch_out.fc.bias',
+                                        #'fc_relu_ch1.fc_relu_ch_out.fc.weight', 'fc_relu_ch1.fc_relu_ch_out.fc.bias',
+                                        #'fc_relu_ch2.fc_relu_ch_out.fc.weight', 'fc_relu_ch2.fc_relu_ch_out.fc.bias',
+                                        #'fc_relu_ch3.fc_relu_ch_out.fc.weight', 'fc_relu_ch3.fc_relu_ch_out.fc.bias',
+                                        #'fc_relu_ch4.fc_relu_ch_out.fc.weight', 'fc_relu_ch4.fc_relu_ch_out.fc.bias',
+                                        #'fc_relu_ch5.fc_relu_ch_out.fc.weight', 'fc_relu_ch5.fc_relu_ch_out.fc.bias',
+                                        #'fc_relu_ch6.fc_relu_ch_out.fc.weight', 'fc_relu_ch6.fc_relu_ch_out.fc.bias',
+                                        #'fc_relu_ch7.fc_relu_ch_out.fc.weight', 'fc_relu_ch7.fc_relu_ch_out.fc.bias',
+                                        #'fc_relu_all.fc_relu_all_in.fc.weight', 'fc_relu_all.fc_relu_all_in.fc.bias',
+                                        'fc_relu_all.fc_relu_all_out.fc.weight', 'fc_relu_all.fc_relu_all_out.fc.bias']
 
-    for name, param in net.named_parameters():
-        if name in update_param_name:
-            param.requires_grad = True
-            update_param.append(param)
-        else:
-            param.requires_grad = False
+    if is_transfer_train:
+        for name, param in net.named_parameters():
+            if name in update_param_transfer_train_name:
+                param.requires_grad = True
+                update_param_transfer_train.append(param)
+            else:
+                param.requires_grad = False
+    
 
     #学習に使う損失関数とオプティマイザの定義
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(params=update_param, lr=SGD_lr)
+    if is_transfer_train:
+        optimizer = optim.SGD(params=update_param_transfer_train, lr=SGD_lr)
+    else:
+        optimizer = optim.SGD(params=net.parameters(), lr=SGD_lr)
+
 
     #学習曲線用
     history = {
@@ -130,7 +137,7 @@ def main():
         if (epoch + 1) % 50 == 0:
             net.eval()
             net = net.to('cpu')
-            dict_model_name = 'finger_multi_emg_' + start_time.strftime("%Y_%m_%d_%H%M%S") + ' _' + str(epoch) + 'epoch' + '.pth'
+            dict_model_name = 'finger_multi_emg_' + start_time.strftime("%Y_%m_%d_%H%M%S") + '_' + str(epoch) + 'epoch' + '.pth'
             torch.save(net.state_dict(), model_folder + dict_model_name)
             net = net.to(device)
         

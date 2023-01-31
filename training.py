@@ -24,7 +24,7 @@ def train(net, dataloader, epoch, criterion, optimizer, device):
             data = data.to(device)
             data = torch.reshape(data, (data.size(1), data.size(0), data.size(2))).float()
             label = label.to(device)
-            
+
             #順伝搬
             optimizer.zero_grad()
             pred = net(data)
@@ -45,7 +45,7 @@ def train(net, dataloader, epoch, criterion, optimizer, device):
             optimizer.step()
 
             #1バッチ分のlossを加算
-            epoch_loss += float(loss.item()) * float(batch_size)
+            epoch_loss += (float(loss.item()) + 1e-12) * float(batch_size)
 
             pb.update(1)
     
@@ -94,6 +94,9 @@ def val_test(net, mode, dataloader, epoch, criterion, device, isDetailOutput=Fal
                 correct_class = [k for k, v in LABEL_NAMES_DICT.items() if v == int_correct_label][0]
                 pred_class_list.append(pred_class)
                 correct_class_list.append(correct_class)
+                if correct_class == 'middle':
+                #if isDetailOutput and pred_class != correct_class:
+                    print(correct_class, pred_class, pred)
 
                 #1バッチ分のlossを加算
                 epoch_loss += float(loss.item()) * float(data.size(0))
