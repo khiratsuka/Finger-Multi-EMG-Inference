@@ -1,5 +1,3 @@
-import argparse
-
 # 分類ラベルの定義
 LABEL_NAMES_DICT_FINGER = {'thumb': 0, 'index': 1, 'middle': 2, 'ring': 3, 'pinkie': 4}
 LABEL_NAMES_DICT_7KEY = {'Q': 0, 'A': 1, 'W': 2, 'D': 3, 'C': 4, 'F': 5, 'G': 6}

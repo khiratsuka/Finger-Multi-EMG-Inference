@@ -187,9 +187,9 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
-dataset*
-model*
+dataset*/
+model*/
 .vscode
-result
+result/
 learning_curve_csv*
 test_dataset_setting.py

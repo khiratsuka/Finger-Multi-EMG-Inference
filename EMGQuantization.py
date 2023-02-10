@@ -3,12 +3,10 @@ import argparse
 import os
 
 import torch
-from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-import dataset
-import quantize_model
-from settings import *
+from utils import dataset, quantize_model
+from utils.settings import *
 
 device = 'cpu'
 

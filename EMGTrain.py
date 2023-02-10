@@ -8,10 +8,8 @@ import torch
 import torch.nn as nn
 from torch import optim
 
-import dataset
-import model
-import training
-from settings import *
+from utils import dataset, model, training
+from utils.settings import *
 
 # GPUが使用可能であれば使う
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -61,38 +59,8 @@ def main():
                                                                                  val_dataset,
                                                                                  test_dataset,
                                                                                  batch_size=args.batch_size)
-    # 学習と検証とテストに使うデータセットのサイズを指定
-    # train_dataset_size = 300
-    # train_dataset_size = int(0.9 * len(train_EMG_dataset))
-    # val_dataset_size = len(train_EMG_dataset) - train_dataset_size
-    # test_dataset_size = len(test_EMG_dataset)
-    # train_EMG_dataset, val_EMG_dataset = torch.utils.data.random_split(train_EMG_dataset, [train_dataset_size, val_dataset_size])
-
-    # dataloaderの生成
-    """
-    Train_DataLoader = DataLoader(train_EMG_dataset,
-                                  batch_size=batch_size,
-                                  shuffle=True,
-                                  num_workers=2,
-                                  drop_last=True,
-                                  pin_memory=True)
-    Val_DataLoader = DataLoader(val_EMG_dataset,
-                                batch_size=batch_size,
-                                shuffle=True,
-                                num_workers=1,
-                                drop_last=True,
-                                pin_memory=True)
-    Test_DataLoader = DataLoader(test_EMG_dataset,
-                                 batch_size=batch_size,
-                                 shuffle=True,
-                                 num_workers=2,
-                                 drop_last=True,
-                                 pin_memory=True)
-    """
     # モデルの宣言
     net = model.createModel(model_arch=args.model_arch, training_target=args.training_target, device=device, hasDropout=args.hasDropout)
-    # net = model.EMG_Inference_Model_Linear(input_size=RAW_DATA_LENGTH).to(device)
-    # net = model.EMG_Inference_Model_LSTM(input_size=CH_NUM, hidden_size=int(RAW_DATA_LENGTH/4), num_layers=3).to(device)
 
     # 学習に使う損失関数とオプティマイザの定義
     criterion = nn.CrossEntropyLoss()

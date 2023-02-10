@@ -1,7 +1,6 @@
 # coding: utf-8
 import torch
 import torch.nn as nn
-
 from settings import *
 
 
@@ -82,7 +81,6 @@ class EMG_Inference_Model_Linear(nn.Module):
         self.fc_relu_ch5 = FullConnect_Relu_Ch(self.input_size, self.hasDropout)
         self.fc_relu_ch6 = FullConnect_Relu_Ch(self.input_size, self.hasDropout)
         self.fc_relu_ch7 = FullConnect_Relu_Ch(self.input_size, self.hasDropout)
-
         self.fc_relu_all = Full_Connect_Relu_All(self.input_size, self.num_classes, self.hasDropout)
 
     def forward(self, data):

@@ -6,9 +6,8 @@ import torch
 import torch.nn as nn
 from tqdm import tqdm
 
-import dataset
-import model
-from settings import *
+from utils import dataset, model
+from utils.settings import *
 
 # GPUが使用可能であれば使う
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

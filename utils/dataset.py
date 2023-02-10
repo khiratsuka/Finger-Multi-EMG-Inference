@@ -5,7 +5,7 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader, Dataset
 
-from settings import *
+from utils.settings import *
 
 
 # Raw-wave Dataset (Basic, Raw Data)

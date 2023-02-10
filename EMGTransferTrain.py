@@ -7,12 +7,9 @@ import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 from torch import optim
-from torch.utils.data import DataLoader
 
-import dataset
-import model
-import training
-from settings import *
+from utils import dataset, model, training
+from utils.settings import *
 
 # GPUが使用可能であれば使う
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

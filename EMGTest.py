@@ -5,10 +5,8 @@ import os
 import torch
 import torch.nn as nn
 
-import dataset
-import model
-import training
-from settings import *
+from utils import dataset, model, training
+from utils.settings import *
 
 # GPUが使用可能であれば使う
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
