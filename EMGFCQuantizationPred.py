@@ -1,9 +1,9 @@
 # coding: utf-8
+import argparse
 import time
 
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 import dataset
@@ -11,31 +11,35 @@ import quantize_model
 from settings import *
 
 # GPUが使用可能であれば使う
-# device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 device = 'cpu'
 
 
-def main():
-    # データセットフォルダの宣言
-    dataset_folder = './dataset_key/'
+def EMGFCQuantizationArgparse():
+    parser = argparse.ArgumentParser(description='筋電位波形テスト用プログラム')
 
-    # モデルファイルの宣言
-    model_folder = './model/'
-    model_file = 'Key-FC-RAW_quantized'
-    model_path = model_folder + model_file + '.pth'
+    # 出入力パス系
+    parser.add_argument('model_path', help='読み込むモデルのパス', type=str)
+    parser.add_argument('-d', '--dataset_path', help='読み込むデータセットのパス', type=str, default='./dataset_finger')
+
+    # モデル設定系
+    parser.add_argument('-p', '--preprocess_data', help='データの前処理を指定, [raw, fft]', type=str, choices=['raw', 'fft'])
+    parser.add_argument('-t', '--training_target', help='対象の選択, [finger, 7key, 4key]', type=str, choices=['finger', '7key', '4key'])
+
+    args = parser.parse_args()
+    return args
+
+
+def main():
+    args = EMGFCQuantizationArgparse()
 
     # データセットの生成
-    test_EMG_dataset = dataset.EMGDatasetRawData(dataset_folder=dataset_folder,
-                                                 class_name=LABEL_NAMES,
-                                                 is_train=False)
-
-    # dataloaderの生成
-    Test_DataLoader = DataLoader(test_EMG_dataset,
-                                 batch_size=batch_size,
-                                 shuffle=True,
-                                 num_workers=1,
-                                 drop_last=True,
-                                 pin_memory=True)
+    test_dataset = dataset.createDataset(dataset_path=args.dataset_path,
+                                         training_target=args.training_target,
+                                         preprocess=args.preprocess_data,
+                                         isOnlyTest=True)
+    # データローダーの生成
+    test_dataloader = dataset.createDataLoader(test_dataset=test_dataset,
+                                               isOnlyTest=True)
 
     # モデルの宣言と読み込み
     net = quantize_model.EMG_Inference_Model_Linear(input_size=RAW_DATA_LENGTH)
@@ -47,7 +51,7 @@ def main():
     # キャリブレーションと量子化
     torch.quantization.prepare(net, inplace=True)
     torch.quantization.convert(net, inplace=True)
-    net.load_state_dict(torch.load(model_path))
+    net.load_state_dict(torch.load(args.model_path))
 
     # ネットワークを評価モードにする
     net.eval()
@@ -55,10 +59,10 @@ def main():
     acc = 0.0
     all_predict_time = 0.0
 
-    with tqdm(total=len(Test_DataLoader), unit='batch', desc='[test]')as pb:
+    with tqdm(total=len(test_dataloader), unit='batch', desc='[test]')as pb:
         # 勾配の計算をしない
         with torch.no_grad():
-            for data, label in Test_DataLoader:
+            for data, label in test_dataloader:
                 # データとクラスのラベルを学習するデバイスに載せる
                 data = data.to(device)
                 data = torch.reshape(data, (data.size(1), data.size(0), data.size(2))).float()
@@ -82,7 +86,7 @@ def main():
 
                 pb.update(1)
 
-    print('accuracy = {}'.format(acc/len(Test_DataLoader)))
+    print('accuracy = {}'.format(acc/len(test_dataset)))
     print('predict time = {}[sec]'.format(all_predict_time))
 
 

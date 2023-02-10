@@ -190,3 +190,6 @@ Temporary Items
 dataset*
 model*
 .vscode
+result
+learning_curve_csv*
+test_dataset_setting.py
