@@ -1,13 +1,14 @@
 # coding: utf-8
 import torch
 import torch.nn as nn
-from settings import *
+
+from utils.settings import *
 
 
-# LinearとReluをひとまとめにしたモジュール
-class FullConnect_Relu(nn.Module):
+# LinearとReLUをひとまとめにしたモジュール
+class FullConnect_ReLU(nn.Module):
     def __init__(self, input_size, output_size, is_relu=True):
-        super(FullConnect_Relu, self).__init__()
+        super(FullConnect_ReLU, self).__init__()
         self.is_relu = is_relu
 
         self.fc = nn.Linear(input_size, output_size)
@@ -21,15 +22,15 @@ class FullConnect_Relu(nn.Module):
 
 
 # センサ1つ分のネットワーク
-class FullConnect_Relu_Ch(nn.Module):
+class FullConnect_ReLU_Ch(nn.Module):
     def __init__(self, input_size, hasDropout=False):
-        super(FullConnect_Relu_Ch, self).__init__()
+        super(FullConnect_ReLU_Ch, self).__init__()
         self.hasDropout = hasDropout
 
-        self.fc_relu_ch_in = FullConnect_Relu(input_size, int(input_size/2))
+        self.fc_relu_ch_in = FullConnect_ReLU(input_size, int(input_size/2))
         if self.hasDropout:
             self.dropout_0 = nn.Dropout(0.3)
-        self.fc_ch_out = FullConnect_Relu(int(input_size/2), input_size, is_relu=False)
+        self.fc_ch_out = FullConnect_ReLU(int(input_size/2), input_size, is_relu=False)
         if self.hasDropout:
             self.dropout_1 = nn.Dropout(0.3)
 
@@ -44,16 +45,16 @@ class FullConnect_Relu_Ch(nn.Module):
 
 
 # 各センサのネットワークで得られたベクトルを結合して全結合層へ流すネットワーク
-class Full_Connect_Relu_All(nn.Module):
+class Full_Connect_ReLU_All(nn.Module):
     def __init__(self, ch_input_size, output_size, hasDropout=False):
-        super(Full_Connect_Relu_All, self).__init__()
+        super(Full_Connect_ReLU_All, self).__init__()
         self.hasDropout = hasDropout
         input_size = ch_input_size * 8
 
-        self.fc_relu_all_in = FullConnect_Relu(input_size, int(input_size/2))
+        self.fc_relu_all_in = FullConnect_ReLU(input_size, int(input_size/2))
         if self.hasDropout:
             self.dropout = nn.Dropout(0.3)
-        self.fc_relu_all_out = FullConnect_Relu(int(input_size/2), output_size, is_relu=False)
+        self.fc_relu_all_out = FullConnect_ReLU(int(input_size/2), output_size, is_relu=False)
 
     def forward(self, ch0, ch1, ch2, ch3, ch4, ch5, ch6, ch7):
         x = torch.cat((ch0, ch1, ch2, ch3, ch4, ch5, ch6, ch7), 1)
@@ -73,15 +74,15 @@ class EMG_Inference_Model_Linear(nn.Module):
         if isTransferTrain:
             self.num_classes = len(LABEL_ID_FINGER)
 
-        self.fc_relu_ch0 = FullConnect_Relu_Ch(self.input_size, self.hasDropout)
-        self.fc_relu_ch1 = FullConnect_Relu_Ch(self.input_size, self.hasDropout)
-        self.fc_relu_ch2 = FullConnect_Relu_Ch(self.input_size, self.hasDropout)
-        self.fc_relu_ch3 = FullConnect_Relu_Ch(self.input_size, self.hasDropout)
-        self.fc_relu_ch4 = FullConnect_Relu_Ch(self.input_size, self.hasDropout)
-        self.fc_relu_ch5 = FullConnect_Relu_Ch(self.input_size, self.hasDropout)
-        self.fc_relu_ch6 = FullConnect_Relu_Ch(self.input_size, self.hasDropout)
-        self.fc_relu_ch7 = FullConnect_Relu_Ch(self.input_size, self.hasDropout)
-        self.fc_relu_all = Full_Connect_Relu_All(self.input_size, self.num_classes, self.hasDropout)
+        self.fc_relu_ch0 = FullConnect_ReLU_Ch(self.input_size, self.hasDropout)
+        self.fc_relu_ch1 = FullConnect_ReLU_Ch(self.input_size, self.hasDropout)
+        self.fc_relu_ch2 = FullConnect_ReLU_Ch(self.input_size, self.hasDropout)
+        self.fc_relu_ch3 = FullConnect_ReLU_Ch(self.input_size, self.hasDropout)
+        self.fc_relu_ch4 = FullConnect_ReLU_Ch(self.input_size, self.hasDropout)
+        self.fc_relu_ch5 = FullConnect_ReLU_Ch(self.input_size, self.hasDropout)
+        self.fc_relu_ch6 = FullConnect_ReLU_Ch(self.input_size, self.hasDropout)
+        self.fc_relu_ch7 = FullConnect_ReLU_Ch(self.input_size, self.hasDropout)
+        self.fc_relu_all = Full_Connect_ReLU_All(self.input_size, self.num_classes, self.hasDropout)
 
     def forward(self, data):
         ch0 = self.fc_relu_ch0(data[0])
@@ -124,6 +125,8 @@ class EMG_Inference_Model_LSTM(nn.Module):
 def createModel(model_arch, training_target, device, hasDropout=False):
     if model_arch == 'fc':
         net = EMG_Inference_Model_Linear(input_size=RAW_DATA_LENGTH, num_classes=len(LABEL_ID[training_target]), hasDropout=hasDropout).to(device)
+        return net
+
     elif model_arch == 'lstm':
         net = EMG_Inference_Model_LSTM(input_size=CH_NUM, hidden_size=int(RAW_DATA_LENGTH/4), class_size=len(LABEL_ID[training_target]), num_layers=1).to(device)
-    return net
+        return net

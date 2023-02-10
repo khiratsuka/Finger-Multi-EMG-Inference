@@ -14,15 +14,15 @@ device = 'cpu'
 
 
 def EMGFCQuantizationArgparse():
-    parser = argparse.ArgumentParser(description='筋電位波形テスト用プログラム')
+    parser = argparse.ArgumentParser(description='FC量子化モデル推論プログラム')
 
     # 出入力パス系
     parser.add_argument('model_path', help='読み込むモデルのパス', type=str)
-    parser.add_argument('-d', '--dataset_path', help='読み込むデータセットのパス', type=str, default='./dataset_finger')
+    parser.add_argument('-d', '--dataset_path', help='読み込むデータセットのパス', type=str, default='./dataset_key')
 
     # モデル設定系
-    parser.add_argument('-p', '--preprocess_data', help='データの前処理を指定, [raw, fft]', type=str, choices=['raw', 'fft'])
-    parser.add_argument('-t', '--training_target', help='対象の選択, [finger, 7key, 4key]', type=str, choices=['finger', '7key', '4key'])
+    parser.add_argument('-p', '--preprocess_data', help='データの前処理を指定, [raw, fft]', type=str, choices=['raw', 'fft'], default='raw')
+    parser.add_argument('-t', '--training_target', help='対象の選択, [finger, 7key, 4key]', type=str, choices=['finger', '7key', '4key'], default='7key')
 
     args = parser.parse_args()
     return args
@@ -32,16 +32,14 @@ def main():
     args = EMGFCQuantizationArgparse()
 
     # データセットの生成
-    test_dataset = dataset.createDataset(dataset_path=args.dataset_path,
-                                         training_target=args.training_target,
-                                         preprocess=args.preprocess_data,
-                                         isOnlyTest=True)
+    train_dataset, val_dataset, test_dataset = dataset.createDataset(dataset_path=args.dataset_path,
+                                                                     training_target=args.training_target,
+                                                                     preprocess=args.preprocess_data)
     # データローダーの生成
-    test_dataloader = dataset.createDataLoader(test_dataset=test_dataset,
-                                               isOnlyTest=True)
+    test_dataloader = dataset.createDataLoader(train_dataset, val_dataset, test_dataset, batch_size=1, isOnlyTest=True)
 
     # モデルの宣言と読み込み
-    net = quantize_model.EMG_Inference_Model_Linear(input_size=RAW_DATA_LENGTH)
+    net = quantize_model.EMG_Inference_Model_Linear(input_size=RAW_DATA_LENGTH, num_classes=len(LABEL_ID[args.training_target]))
     net.eval()
     net.fuse_model()
     net.qconfig = torch.quantization.get_default_qconfig('qnnpack')

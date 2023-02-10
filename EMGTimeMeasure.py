@@ -22,9 +22,9 @@ def EMGTestArgparse():
     parser.add_argument('-c', '--csv_path', help='テスト結果のcsvデータの保存先', type=str, default='./result/detail_pred')
 
     # モデル設定系
-    parser.add_argument('-a', '--model_arch', help='モデルアーキテクチャを指定, [fc, lstm]', type=str, choices=['fc', 'lstm'])
-    parser.add_argument('-p', '--preprocess_data', help='データの前処理を指定, [raw, fft]', type=str, choices=['raw', 'fft'])
-    parser.add_argument('-t', '--training_target', help='学習する内容の選択, [finger, 7key, 4key]', type=str, choices=['finger', '7key', '4key'])
+    parser.add_argument('-a', '--model_arch', help='モデルアーキテクチャを指定, [fc, lstm]', type=str, choices=['fc', 'lstm'], default='fc')
+    parser.add_argument('-p', '--preprocess_data', help='データの前処理を指定, [raw, fft]', type=str, choices=['raw', 'fft'], default='raw')
+    parser.add_argument('-t', '--training_target', help='対象の選択, [finger, 7key, 4key]', type=str, choices=['finger', '7key', '4key'], default='finger')
 
     args = parser.parse_args()
     return args
@@ -34,16 +34,14 @@ def main():
     args = EMGTestArgparse()
 
     # データセットの生成
-    test_dataset = dataset.createDataset(dataset_path=args.dataset_path,
-                                         training_target=args.training_target,
-                                         preprocess=args.preprocess_data,
-                                         isOnlyTest=True)
+    train_dataset, val_dataset, test_dataset = dataset.createDataset(dataset_path=args.dataset_path,
+                                                                     training_target=args.training_target,
+                                                                     preprocess=args.preprocess_data)
     # データローダーの生成
-    test_dataloader = dataset.createDataLoader(test_dataset=test_dataset,
-                                               isOnlyTest=True)
+    test_dataloader = dataset.createDataLoader(train_dataset, val_dataset, test_dataset, isOnlyTest=True)
 
     # モデルの宣言と読み込み
-    net = model.createModel(model_arch=args.model_arch, training_target=args.training_target, device=device, hasDropout=args.hasDropout)
+    net = model.createModel(model_arch=args.model_arch, training_target=args.training_target, device=device)
     net.load_state_dict(torch.load(args.model_path))
 
     # ネットワークを評価モードにする

@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 from tqdm import tqdm
 
-from settings import *
+from utils.settings import *
 
 
 def train(net, dataloader, epoch, criterion, optimizer, device):
@@ -44,14 +44,14 @@ def train(net, dataloader, epoch, criterion, optimizer, device):
             optimizer.step()
 
             # 1バッチ分のlossを加算
-            epoch_loss += (float(loss.item()) + 1e-12) * float(batch_size)
+            epoch_loss += (float(loss.item()) + 1e-12) * float(data.size(0))
 
             pb.update(1)
 
     return epoch_loss, epoch_acc
 
 
-def val_test(net, mode, dataloader, epoch, criterion, device, isDetailOutput=False):
+def val_test(net, mode, dataloader, epoch, criterion, device, training_target, isDetailOutput=False):
     # ネットワークを評価モードにする
     net.eval()
 
@@ -89,13 +89,10 @@ def val_test(net, mode, dataloader, epoch, criterion, device, isDetailOutput=Fal
                         epoch_acc += 1.0
 
                 # 予測・正解クラスのリスト作成
-                pred_class = [k for k, v in LABEL_NAMES_DICT.items() if v == int_pred_of_label][0]
-                correct_class = [k for k, v in LABEL_NAMES_DICT.items() if v == int_correct_label][0]
+                pred_class = [k for k, v in LABEL_NAMES_DICT[training_target].items() if v == int_pred_of_label][0]
+                correct_class = [k for k, v in LABEL_NAMES_DICT[training_target].items() if v == int_correct_label][0]
                 pred_class_list.append(pred_class)
                 correct_class_list.append(correct_class)
-                if correct_class == 'middle':
-                    # if isDetailOutput and pred_class != correct_class:
-                    print(correct_class, pred_class, pred)
 
                 # 1バッチ分のlossを加算
                 epoch_loss += float(loss.item()) * float(data.size(0))
@@ -140,10 +137,6 @@ def outputLearningCurveValue(data, start_time, result_folder='./learning_curve_c
     output_folder = start_time.strftime("%Y_%m_%d_%H%M%S")
     output_path = os.path.join(result_folder, output_folder)
     pathes = {}
-
-    # フォルダ作成
-    if not os.path.exists(output_path):
-        os.makedirs(output_path)
 
     # それぞれのファイルのパス
     pathes['train_loss'] = os.path.join(output_path, 'train_loss.csv')

@@ -12,17 +12,17 @@ device = 'cpu'
 
 
 def EMGQuantizationArgparse():
-    parser = argparse.ArgumentParser(description='筋電位波形テスト用プログラム')
+    parser = argparse.ArgumentParser(description='モデル量子化用プログラム')
 
     # 出入力パス系
     parser.add_argument('base_model_path', help='読み込むモデルのパス', type=str)
     parser.add_argument('-m', '--model_path', help='モデルの保存先パス', type=str, default='./model')
-    parser.add_argument('-d', '--dataset_path', help='読み込むデータセットのパス', type=str, default='./dataset_finger')
+    parser.add_argument('-d', '--dataset_path', help='読み込むデータセットのパス', type=str, default='./dataset_key')
 
     # モデル設定系
-    parser.add_argument('-a', '--model_arch', help='モデルアーキテクチャを指定, [fc, lstm]', type=str, choices=['fc', 'lstm'])
-    parser.add_argument('-p', '--preprocess_data', help='データの前処理を指定, [raw, fft]', type=str, choices=['raw', 'fft'])
-    parser.add_argument('-t', '--training_target', help='対象の選択, [finger, 7key, 4key]', type=str, choices=['finger', '7key', '4key'])
+    parser.add_argument('-a', '--model_arch', help='モデルアーキテクチャを指定, [fc, lstm]', type=str, choices=['fc', 'lstm'], default='fc')
+    parser.add_argument('-p', '--preprocess_data', help='データの前処理を指定, [raw, fft]', type=str, choices=['raw', 'fft'], default='raw')
+    parser.add_argument('-t', '--training_target', help='対象の選択, [finger, 7key, 4key]', type=str, choices=['finger', '7key', '4key'], default='7key')
 
     args = parser.parse_args()
     return args
@@ -43,7 +43,7 @@ def main():
     calib_dataloader, _, _ = dataset.createDataLoader(calib_dataset, temp0_dataset, temp1_dataset)
 
     # モデルの宣言と読み込み
-    net = quantize_model.EMG_Inference_Model_Linear(input_size=RAW_DATA_LENGTH).to(device)
+    net = quantize_model.EMG_Inference_Model_Linear(input_size=RAW_DATA_LENGTH, num_classes=len(LABEL_ID[args.training_target])).to(device)
     net.load_state_dict(torch.load(args.base_model_path))
     net.eval()
     net.fuse_model()

@@ -25,9 +25,9 @@ def EMGTrainArgparse():
     parser.add_argument('-c', '--csv_path', help='学習曲線csvデータの保存先', type=str, default='./learning_curve_csv')
 
     # 学習設定系
-    parser.add_argument('-a', '--model_arch', help='モデルアーキテクチャを指定, [fc, lstm]', type=str, choices=['fc', 'lstm'])
-    parser.add_argument('-p', '--preprocess_data', help='データの前処理を指定, [raw, fft]', type=str, choices=['raw', 'fft'])
-    parser.add_argument('-t', '--training_target', help='対象の選択, [finger, 7key, 4key]', type=str, choices=['finger', '7key', '4key'])
+    parser.add_argument('-a', '--model_arch', help='モデルアーキテクチャを指定, [fc, lstm]', type=str, choices=['fc', 'lstm'], default='fc')
+    parser.add_argument('-p', '--preprocess_data', help='データの前処理を指定, [raw, fft]', type=str, choices=['raw', 'fft'], default='raw')
+    parser.add_argument('-t', '--training_target', help='対象の選択, [finger, 7key, 4key]', type=str, choices=['finger', '7key', '4key'], default='finger')
     parser.add_argument('-l', '--learning_rate', help='学習率', type=float, default=0.01)
     parser.add_argument('-e', '--epoch', help='エポック数', type=int, default=200)
     parser.add_argument('-b', '--batch_size', help='バッチサイズ', type=int, default=1)
@@ -95,7 +95,7 @@ def main():
         history['train_acc'].append(train_acc/len(train_dataset))
 
         # 検証フェーズ
-        val_loss, val_acc = training.val_test(net, 'val', val_dataloader, epoch, criterion, device)
+        val_loss, val_acc = training.val_test(net, 'val', val_dataloader, epoch, criterion, device, args.training_target)
         history['val_loss'].append(val_loss/len(val_dataset))
         history['val_acc'].append(val_acc/len(val_dataset))
 
@@ -147,12 +147,12 @@ def main():
             net = net.to(device)
 
     # テストフェーズ
-    _, test_acc = training.val_test(net, 'test', test_dataloader, epoch, criterion, device)
+    _, test_acc = training.val_test(net, 'test', test_dataloader, epoch, criterion, device, args.training_target)
     print('test_acc = {}'.format(test_acc/len(test_dataset)))
 
     metrics = ['loss', 'acc']
     training.outputLearningCurve(history, metrics, start_time)
-    training.outputLearningCurveValue(history, start_time)
+    training.outputLearningCurveValue(history, start_time, args.csv_path)
 
 
 if __name__ == '__main__':
